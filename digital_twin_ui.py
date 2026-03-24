@@ -3,20 +3,40 @@ import pandas as pd
 import random
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Digital Twin", layout="wide")
+st.set_page_config(page_title="Digital Twin Pro", layout="wide")
 
-st.title("🏭 Digital Twin - KEDA Polishing Line")
+st.title("🏭 Digital Twin - KEDA Polishing Line (Pro Version)")
 
 # --------------------------
-# CONTROL PANEL
+# CONTROL PANEL (ALL SLIDERS)
 # --------------------------
-st.sidebar.header("⚙️ Process Control Panel")
+st.sidebar.header("⚙️ Full Process Control Panel")
 
+# Production
 speed = st.sidebar.slider("Line Speed (m/min)", 10, 20, 15)
+tile_size = st.sidebar.slider("Tile Size (mm)", 600, 1200, 800)
+efficiency = st.sidebar.slider("Efficiency (%)", 50, 100, 85)
+
+# Mechanical
 pressure = st.sidebar.slider("Pressure (MPa)", 0.5, 0.9, 0.7)
-abrasive = st.sidebar.slider("Abrasive Condition (%)", 50, 120, 100)
-water_flow = st.sidebar.slider("Water Flow (%)", 50, 120, 100)
+rpm = st.sidebar.slider("RPM", 300, 1500, 800)
+load_factor = st.sidebar.slider("Load (%)", 50, 120, 100)
 vibration = st.sidebar.slider("Vibration (%)", 0, 100, 20)
+bearing_temp = st.sidebar.slider("Bearing Temp (°C)", 30, 120, 60)
+
+# Process
+water_flow = st.sidebar.slider("Water Flow (%)", 50, 120, 100)
+slurry = st.sidebar.slider("Slurry (%)", 50, 120, 100)
+abrasive = st.sidebar.slider("Abrasive (%)", 50, 120, 100)
+tile_hardness = st.sidebar.slider("Tile Hardness (%)", 50, 120, 100)
+moisture = st.sidebar.slider("Moisture (%)", 0, 10, 3)
+
+# Energy
+idle_loss = st.sidebar.slider("Idle Loss (%)", 0, 30, 10)
+
+# Quality
+target_gloss = st.sidebar.slider("Target Gloss", 70, 100, 90)
+rejection = st.sidebar.slider("Rejection (%)", 0, 20, 5)
 
 # --------------------------
 # DATA GENERATION
@@ -29,11 +49,17 @@ for t in range(20):
 
     heads = [random.uniform(7, 12) for _ in range(8)]
 
-    production = speed_var * 60
-    power = sum(heads) * (1 + vibration/100)
+    production = speed_var * 60 * (efficiency/100)
+
+    power = sum(heads) * (load_factor/100) * (1 + vibration/100)
+
     sec = power / production
 
-    gloss = 95 - pressure_var * 20 - (1 - abrasive/100) * 10 + water_flow * 0.03
+    gloss = 95 \
+            - pressure_var * 20 \
+            - (1 - abrasive/100) * 10 \
+            + water_flow * 0.03 \
+            - moisture * 1.5
 
     data.append({
         "time": t,
@@ -72,7 +98,7 @@ if last["gloss"] < 80:
     st.warning("Low Gloss")
 
 # --------------------------
-# GRAPHS
+# GRAPH
 # --------------------------
 st.subheader("📈 Trends")
 

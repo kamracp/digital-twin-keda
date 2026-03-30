@@ -1,0 +1,53 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import time
+
+# 1. डैशबोर्ड की सजावट
+st.set_page_config(layout="wide", page_title="KEDA Digital Twin Live")
+
+# 2. 'सिमुलेशन' डेटा (Session State)
+# यह हिस्सा याद रखता है कि पिछले पल डेटा क्या था
+if "wear_levels" not in st.session_state:
+    st.session_state.wear_levels = np.random.uniform(0.2, 0.5, 24)
+
+# 3. डेटा को थोड़ा बढ़ाना (जैसे मशीन चल रही हो)
+st.session_state.wear_levels += 0.001
+
+# 4. मुख्य स्क्रीन (Heading)
+st.title("💎 KEDA Polishing Line: Digital Twin")
+st.write("Current Status: **Running (Virtual Simulation)**")
+
+# 5. मुख्य मीटर (KPIs)
+c1, c2, c3 = st.columns(3)
+avg_wear = np.mean(st.session_state.wear_levels)
+gloss = 95 - (avg_wear * 30)
+
+with c1:
+    st.metric("चमक (Gloss Level)", f"{gloss:.1f} GU", delta="Steady")
+with c2:
+    st.metric("बिजली बचत (Daily Saving)", "₹ 1,450", delta="Optimized")
+with c3:
+    st.metric("उत्पादन (Production)", "1250 m²/hr")
+
+# 6. KEDA Manual के हिसाब से 24 हेड का ग्राफ
+st.subheader("⚙️ पॉलिशिंग हेड स्थिति (Grit: 36# to 240#)")
+# ट्रेनिंग मैनुअल के हिसाब से ग्रिट साइज की लिस्ट
+grit_list = ["36#", "46#", "60#", "80#", "120#", "150#", "180#", "240#"] * 3
+
+df = pd.DataFrame({
+    "Head": range(1, 25),
+    "Grit Size": grit_list,
+    "Wear (%)": st.session_state.wear_levels * 100
+})
+st.bar_chart(df.set_index("Head")["Wear (%)"])
+
+# 7. अलर्ट सिस्टम (Predictive Maintenance)
+st.write("---")
+for i, w in enumerate(st.session_state.wear_levels):
+    if w > 0.8:
+        st.error(f"⚠️ चेतावनी: हेड {i+1} ({grit_list[i]}) का पत्थर 80% घिस चुका है। कृपया बदलें!")
+
+# 8. ऑटो-रिफ्रेश (हर 2 सेकंड में पेज अपडेट होगा)
+time.sleep(2)
+st.rerun()
